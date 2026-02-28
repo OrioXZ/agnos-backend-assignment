@@ -67,7 +67,8 @@ func main() {
 	patientHandler := handler.NewPatientHandler(patientSvc)
 
 	authMW := middleware.AuthJWT(jwtSvc)
-	r.GET("/patient/search/:id", authMW, patientHandler.Search)
+	r.GET("/patient/search/:id", authMW, patientHandler.SearchByID)
+	r.GET("/patient/search", authMW, patientHandler.Search)
 	// ตัวอย่าง route ที่ต้อง auth
 	// authMW := middleware.AuthJWT(jwtSvc)
 	// r.GET("/patient/search", authMW, patientHandler.Search)
