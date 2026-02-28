@@ -1,27 +1,29 @@
 package config
 
-import "os"
+import (
+	"os"
+)
 
 type Config struct {
-	Port  string
-	DbDsn string
+	Port        string
+	DatabaseURL string
+	JWTSecret   string
+	DbDsn       string
 }
 
 func Load() Config {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
+	cfg := Config{
+		Port:        getEnv("PORT", "8080"),
+		DatabaseURL: getEnv("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/agnos?sslmode=disable"),
+		JWTSecret:   getEnv("JWT_SECRET", "dev_secret_change_me"),
 	}
+	return cfg
+}
 
-	// Example:
-	// host=localhost user=postgres password=postgres dbname=agnos port=5432 sslmode=disable TimeZone=Asia/Bangkok
-	dsn := os.Getenv("DB_DSN")
-	if dsn == "" {
-		dsn = "host=localhost user=postgres password=postgres dbname=agnos port=5432 sslmode=disable TimeZone=Asia/Bangkok"
+func getEnv(key, def string) string {
+	v := os.Getenv(key)
+	if v == "" {
+		return def
 	}
-
-	return Config{
-		Port:  port,
-		DbDsn: dsn,
-	}
+	return v
 }
