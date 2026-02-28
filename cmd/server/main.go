@@ -9,8 +9,10 @@ import (
 
 	"github.com/OrioXZ/agnos-backend-assignment/internal/config"
 	"github.com/OrioXZ/agnos-backend-assignment/internal/handler"
+	"github.com/OrioXZ/agnos-backend-assignment/internal/middleware"
 	"github.com/OrioXZ/agnos-backend-assignment/internal/model"
 	"github.com/OrioXZ/agnos-backend-assignment/internal/repository"
+	"github.com/OrioXZ/agnos-backend-assignment/internal/service"
 	"github.com/OrioXZ/agnos-backend-assignment/internal/service/auth"
 )
 
@@ -42,6 +44,7 @@ func main() {
 
 	// seed hospitals (idempotent)
 	seedHospitals(db)
+	seedPatients(db)
 
 	r := gin.Default()
 
@@ -59,6 +62,12 @@ func main() {
 	r.POST("/staff/create", staffHandler.Create)
 	r.POST("/staff/login", staffHandler.Login)
 
+	patientRepo := repository.NewPatientRepository(db)
+	patientSvc := service.NewPatientService(patientRepo)
+	patientHandler := handler.NewPatientHandler(patientSvc)
+
+	authMW := middleware.AuthJWT(jwtSvc)
+	r.GET("/patient/search/:id", authMW, patientHandler.Search)
 	// ตัวอย่าง route ที่ต้อง auth
 	// authMW := middleware.AuthJWT(jwtSvc)
 	// r.GET("/patient/search", authMW, patientHandler.Search)
@@ -83,4 +92,50 @@ func seedHospitals(db *gorm.DB) {
 		_ = db.Create(&h).Error
 	}
 
+}
+
+func seedPatients(db *gorm.DB) {
+	var count int64
+	db.Model(&model.Patient{}).Count(&count)
+	if count > 0 {
+		return
+	}
+
+	seeds := []model.Patient{
+		{
+			HospitalID:  1,
+			PatientHN:   "HN001",
+			NationalID:  "1234567890123",
+			PassportID:  "P1234567",
+			FirstNameTH: "สมชาย",
+			LastNameTH:  "ใจดี",
+			FirstNameEN: "Somchai",
+			LastNameEN:  "Jaidee",
+			Gender:      "M",
+		},
+		{
+			HospitalID:  1,
+			PatientHN:   "HN002",
+			NationalID:  "9876543210987",
+			PassportID:  "X7654321",
+			FirstNameTH: "สมหญิง",
+			LastNameTH:  "สุขใจ",
+			FirstNameEN: "Somying",
+			LastNameEN:  "Sukjai",
+			Gender:      "F",
+		},
+		{
+			HospitalID:  2,
+			PatientHN:   "HN003",
+			NationalID:  "1111111111111",
+			PassportID:  "B1111111",
+			FirstNameTH: "ทดสอบ",
+			LastNameTH:  "โรงพยาบาลB",
+			FirstNameEN: "Test",
+			LastNameEN:  "HospitalB",
+			Gender:      "M",
+		},
+	}
+
+	db.Create(&seeds)
 }
