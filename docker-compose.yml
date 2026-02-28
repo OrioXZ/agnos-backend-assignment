@@ -1,10 +1,6 @@
-version: "3.9"
-
 services:
-  postgres:
-    image: postgres:15
-    container_name: agnos-postgres
-    restart: always
+  db:
+    image: postgres:16-alpine
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -13,6 +9,27 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+
+  api:
+    build: .
+    environment:
+      PORT: "8080"
+      # ปรับตาม config.Load() ของคุณว่ารับ key ชื่ออะไร
+      DATABASE_URL: "host=db user=postgres password=postgres dbname=agnos port=5432 sslmode=disable TimeZone=Asia/Bangkok"
+      JWT_SECRET: "dev-secret"
+    depends_on:
+      - db
+    expose:
+      - "8080"
+
+  nginx:
+    image: nginx:alpine
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
 
 volumes:
   pgdata:
