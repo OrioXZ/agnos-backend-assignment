@@ -13,7 +13,7 @@ import (
 func main() {
 	cfg := config.Load()
 
-	db, err := repository.NewPostgres(cfg.DbDsn)
+	db, err := repository.NewPostgres(cfg.DatabaseURL)
 	if err != nil {
 		log.Fatal(err)
 	}
