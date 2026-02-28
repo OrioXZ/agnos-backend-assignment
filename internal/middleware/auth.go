@@ -4,40 +4,38 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/OrioXZ/agnos-backend-assignment/internal/service/auth"
 	"github.com/gin-gonic/gin"
+
+	"github.com/OrioXZ/agnos-backend-assignment/internal/service/auth"
 )
 
-const CtxHospitalKey = "hospital"
-const CtxUsernameKey = "username"
-
-func AuthJWT(authSvc *auth.Service) gin.HandlerFunc {
+func AuthJWT(jwtSvc *auth.Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		h := c.GetHeader("Authorization")
 		if h == "" || !strings.HasPrefix(h, "Bearer ") {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "missing bearer token"})
-			c.Abort()
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing token"})
 			return
 		}
+
 		tokenStr := strings.TrimPrefix(h, "Bearer ")
-
-		claims, err := authSvc.Parse(tokenStr)
+		claims, err := jwtSvc.Parse(tokenStr)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
-			c.Abort()
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
 			return
 		}
 
-		hospital, _ := claims["hospital"].(string)
 		username, _ := claims["username"].(string)
-		if hospital == "" || username == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
-			c.Abort()
+
+		// jwt.MapClaims number → float64
+		hidFloat, ok := claims["hospitalId"].(float64)
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token hospitalId"})
 			return
 		}
+		hospitalID := uint(hidFloat)
 
-		c.Set(CtxHospitalKey, hospital)
-		c.Set(CtxUsernameKey, username)
+		c.Set("username", username)
+		c.Set("hospitalId", hospitalID)
 		c.Next()
 	}
 }

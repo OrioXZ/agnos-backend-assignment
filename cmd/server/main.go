@@ -49,13 +49,19 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
 
+	jwtSvc := auth.New(cfg.JWTSecret)
+
 	hospitalRepo := repository.NewHospitalRepository(db)
 	staffRepo := repository.NewStaffRepository(db)
-	staffService := auth.NewStaffService(hospitalRepo, staffRepo)
+	staffService := auth.NewStaffService(hospitalRepo, staffRepo, jwtSvc)
 	staffHandler := handler.NewStaffHandler(staffService)
 
 	r.POST("/staff/create", staffHandler.Create)
+	r.POST("/staff/login", staffHandler.Login)
 
+	// ตัวอย่าง route ที่ต้อง auth
+	// authMW := middleware.AuthJWT(jwtSvc)
+	// r.GET("/patient/search", authMW, patientHandler.Search)
 	if err := r.Run(":" + cfg.Port); err != nil {
 		log.Fatal(err)
 	}

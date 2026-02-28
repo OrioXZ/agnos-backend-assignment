@@ -45,3 +45,34 @@ func (h *StaffHandler) Create(c *gin.Context) {
 		"hospitalId": staff.HospitalID,
 	})
 }
+
+type loginStaffRequest struct {
+	Username     string `json:"username"`
+	Password     string `json:"password"`
+	HospitalCode string `json:"hospitalCode"`
+}
+
+func (h *StaffHandler) Login(c *gin.Context) {
+	var req loginStaffRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid body"})
+		return
+	}
+
+	res, err := h.staffService.Login(auth.LoginInput{
+		Username:     req.Username,
+		Password:     req.Password,
+		HospitalCode: req.HospitalCode,
+	})
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"token":      res.Token,
+		"id":         res.ID,
+		"username":   res.Username,
+		"hospitalId": res.HospitalID,
+	})
+}

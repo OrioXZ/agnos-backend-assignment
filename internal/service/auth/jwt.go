@@ -15,12 +15,12 @@ func New(secret string) *Service {
 	return &Service{secret: []byte(secret)}
 }
 
-func (s *Service) GenerateToken(username, hospital string) (string, error) {
+func (s *Service) GenerateToken(username string, hospitalID uint) (string, error) {
 	claims := jwt.MapClaims{
-		"username": username,
-		"hospital": hospital,
-		"exp":      time.Now().Add(24 * time.Hour).Unix(),
-		"iat":      time.Now().Unix(),
+		"username":   username,
+		"hospitalId": hospitalID,
+		"exp":        time.Now().Add(24 * time.Hour).Unix(),
+		"iat":        time.Now().Unix(),
 	}
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return t.SignedString(s.secret)
