@@ -101,7 +101,7 @@ Run tests:
 -   GitHub repository
 -   Google Doc documentation
 -   Docker Compose setup
--   Fully runnable containerized system
+-   Docker Compose configuration is included for easier local setup.
 
 ------------------------------------------------------------------------
 
